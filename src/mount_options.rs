@@ -21,6 +21,7 @@ pub enum MountOption {
     /// Allow the root user to access this filesystem, in addition to the user who mounted it
     AllowRoot,
     /// Automatically unmount when the mounting process exits
+    /// Requires that the user be root, or that AllowRoot or AllowOther is also set
     AutoUnmount,
     /// Enable permission checking in the kernel
     DefaultPermissions,

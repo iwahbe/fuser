@@ -122,6 +122,7 @@ fn main() {
     if let Some(auto_unmount) = env::args_os().nth(2) {
         if auto_unmount.eq("--auto_unmount") {
             options.push(MountOption::AutoUnmount);
+            options.push(MountOption::AllowRoot);
         }
     }
     fuser::mount2(HelloFS, mountpoint, &options).unwrap();

@@ -1836,6 +1836,8 @@ fn main() {
     if let Ok(enabled) = fuse_allow_other_enabled() {
         if enabled {
             options.push(MountOption::AllowOther);
+        } else {
+            options.push(MountOption::AllowRoot);
         }
     } else {
         eprintln!("Unable to read /etc/fuse.conf");
