@@ -40,6 +40,11 @@ use std::cmp::max;
 #[cfg(feature = "abi-7-13")]
 use std::cmp::min;
 
+#[cfg(target_os = "macos")]
+use std::os::macos::fs::MetadataExt as MacMetaExt;
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt};
+
 mod channel;
 mod ll;
 mod reply;
@@ -95,6 +100,30 @@ pub enum FileType {
     Socket,
 }
 
+#[cfg(target_family = "unix")]
+impl From<std::fs::FileType> for FileType {
+    fn from(ft: std::fs::FileType) -> Self {
+        use FileType::*;
+        if ft.is_fifo() {
+            NamedPipe
+        } else if ft.is_char_device() {
+            CharDevice
+        } else if ft.is_block_device() {
+            BlockDevice
+        } else if ft.is_dir() {
+            Directory
+        } else if ft.is_file() {
+            RegularFile
+        } else if ft.is_symlink() {
+            Symlink
+        } else if ft.is_socket() {
+            Socket
+        } else {
+            unreachable!("We have encountered a file type not specified by either unix of fuser")
+        }
+    }
+}
+
 /// File attributes
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serializable", derive(Serialize, Deserialize))]
@@ -131,6 +160,40 @@ pub struct FileAttr {
     pub padding: u32,
     /// Flags (macOS only, see chflags(2))
     pub flags: u32,
+}
+
+macro_rules! to_sys_time {
+    ($t: expr, $s: tt, $n: tt) => {
+        SystemTime::UNIX_EPOCH
+            + std::time::Duration::from_secs($t.$s() as u64)
+            + std::time::Duration::from_nanos($t.$n() as u64)
+    };
+}
+
+#[cfg(target_family = "unix")]
+impl From<std::fs::Metadata> for FileAttr {
+    fn from(metadata: std::fs::Metadata) -> Self {
+        Self {
+            ino: metadata.ino(),
+            size: metadata.size(),
+            blocks: metadata.blocks(),
+            atime: to_sys_time!(metadata, atime, atime_nsec),
+            mtime: to_sys_time!(metadata, mtime, mtime_nsec),
+            ctime: to_sys_time!(metadata, ctime, ctime_nsec),
+            #[cfg(target_os = "macos")]
+            crtime: to_sys_time!(metadata, ctime, ctime_nsec),
+            kind: metadata.file_type().into(),
+            perm: metadata.permissions().mode() as u16,
+            nlink: metadata.nlink() as u32,
+            uid: metadata.uid(),
+            gid: metadata.gid(),
+            rdev: metadata.rdev() as u32,
+            blksize: metadata.blksize() as u32,
+            padding: 0,
+            #[cfg(target_os = "macos")]
+            flags: metadata.st_flags(),
+        }
+    }
 }
 
 /// Configuration of the fuse kernel module connection
