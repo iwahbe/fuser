@@ -9,7 +9,7 @@
 use libc::{c_int, ENOSYS};
 #[cfg(feature = "serializable")]
 use serde::{Deserialize, Serialize};
-use std::convert::AsRef;
+use std::convert::{AsRef, TryFrom};
 use std::ffi::OsStr;
 use std::io;
 use std::path::Path;
@@ -122,6 +122,29 @@ impl From<std::fs::FileType> for FileType {
             unreachable!("We have encountered a file type not specified by either unix of fuser")
         }
     }
+}
+
+#[cfg(target_family = "unix")]
+/// Error indicating that the file system gave fuse an unknown device type.
+#[derive(Debug)]
+pub struct UnknownDevice;
+#[cfg(target_family = "unix")]
+impl TryFrom<u8> for FileType {
+    fn try_from(ft: u8) -> std::result::Result<Self, <Self as std::convert::TryFrom<u8>>::Error> {
+        use FileType::*;
+        match ft {
+            libc::DT_BLK => Ok(BlockDevice),
+            libc::DT_CHR => Ok(CharDevice),
+            libc::DT_DIR => Ok(Directory),
+            libc::DT_FIFO => Ok(NamedPipe),
+            libc::DT_LNK => Ok(Symlink),
+            libc::DT_REG => Ok(RegularFile),
+            libc::DT_SOCK => Ok(Socket),
+            libc::DT_UNKNOWN => Err(UnknownDevice {}),
+            _ => Err(UnknownDevice {}),
+        }
+    }
+    type Error = UnknownDevice;
 }
 
 /// File attributes
