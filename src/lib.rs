@@ -194,12 +194,8 @@ macro_rules! to_sys_time {
 }
 
 #[cfg(target_family = "unix")]
-impl<R> From<R> for FileAttr
-where
-    R: AsRef<std::fs::Metadata>,
-{
-    fn from(metadata: R) -> Self {
-        let metadata = metadata.as_ref();
+impl From<&std::fs::Metadata> for FileAttr {
+    fn from(metadata: &std::fs::Metadata) -> Self {
         Self {
             ino: metadata.ino(),
             size: metadata.size(),
