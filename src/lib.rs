@@ -212,7 +212,10 @@ impl From<&std::fs::Metadata> for FileAttr {
             rdev: metadata.rdev() as u32,
             blksize: metadata.blksize() as u32,
             padding: 0,
+            #[cfg(target_os = "macos")]
             flags: metadata.st_flags(),
+            #[cfg(not(target_os = "macos"))]
+            flags: 0,
         }
     }
 }
