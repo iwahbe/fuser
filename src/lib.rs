@@ -203,7 +203,6 @@ impl From<&std::fs::Metadata> for FileAttr {
             atime: to_sys_time!(metadata, atime, atime_nsec),
             mtime: to_sys_time!(metadata, mtime, mtime_nsec),
             ctime: to_sys_time!(metadata, ctime, ctime_nsec),
-            #[cfg(target_os = "macos")]
             crtime: to_sys_time!(metadata, ctime, ctime_nsec),
             kind: metadata.file_type().into(),
             perm: metadata.permissions().mode() as u16,
@@ -213,7 +212,6 @@ impl From<&std::fs::Metadata> for FileAttr {
             rdev: metadata.rdev() as u32,
             blksize: metadata.blksize() as u32,
             padding: 0,
-            #[cfg(target_os = "macos")]
             flags: metadata.st_flags(),
         }
     }
