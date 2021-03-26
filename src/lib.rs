@@ -203,7 +203,10 @@ impl From<&std::fs::Metadata> for FileAttr {
             atime: to_sys_time!(metadata, atime, atime_nsec),
             mtime: to_sys_time!(metadata, mtime, mtime_nsec),
             ctime: to_sys_time!(metadata, ctime, ctime_nsec),
+            #[cfg(target_os = "macos")]
             crtime: to_sys_time!(metadata, ctime, ctime_nsec),
+            #[cfg(not(target_os = "macos"))]
+            crtime: SystemTime::UNIX_EPOCH,
             kind: metadata.file_type().into(),
             perm: metadata.permissions().mode() as u16,
             nlink: metadata.nlink() as u32,
