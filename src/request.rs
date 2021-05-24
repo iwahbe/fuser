@@ -541,6 +541,10 @@ impl<'a> Request<'a> {
                 // TODO: handle CUSE_INIT
                 self.reply::<ReplyEmpty>().error(ENOSYS);
             }
+
+            ll::Operation::Unknown {} => {
+                self.reply::<ReplyEmpty>().error(ENOSYS);
+            }
         }
     }
 

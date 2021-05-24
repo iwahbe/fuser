@@ -1123,6 +1123,8 @@ mod op {
 
             #[cfg(feature = "abi-7-12")]
             fuse_opcode::CUSE_INIT => Operation::CuseInit(CuseInit(data.fetch()?)),
+
+            fuse_opcode::FUSE_UNKNOWN => Operation::Unknown {},
         })
     }
 }
@@ -1196,6 +1198,8 @@ pub enum Operation<'a> {
 
     #[cfg(feature = "abi-7-12")]
     CuseInit(CuseInit<'a>),
+
+    Unknown {},
 }
 
 impl<'a> fmt::Display for Operation<'a> {
@@ -1385,6 +1389,8 @@ impl<'a> fmt::Display for Operation<'a> {
 
             #[cfg(feature = "abi-7-12")]
             Operation::CuseInit(_) => write!(f, "CUSE_INIT"),
+
+            Operation::Unknown {} => write!(f, "UNKNOWN returning ENOSYS"),
         }
     }
 }

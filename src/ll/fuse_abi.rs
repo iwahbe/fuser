@@ -373,6 +373,9 @@ pub enum fuse_opcode {
 
     #[cfg(feature = "abi-7-12")]
     CUSE_INIT = 4096,
+
+    // This is a phony opcode
+    FUSE_UNKNOWN = 8192,
 }
 
 impl TryFrom<u32> for fuse_opcode {
@@ -445,7 +448,7 @@ impl TryFrom<u32> for fuse_opcode {
             #[cfg(feature = "abi-7-12")]
             4096 => Ok(fuse_opcode::CUSE_INIT),
 
-            _ => Err(InvalidOpcodeError),
+            _ => Ok(fuse_opcode::FUSE_UNKNOWN),
         }
     }
 }
